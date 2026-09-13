@@ -2,7 +2,7 @@
 
 [Профиль](README.md). Бизнес-условия и таблица исходов находятся в [примере ядра](../core/workflow.md#сквозной-пример-отмена-бронирования).
 
-Пример показывает один сценарий изменения существующей брони. Возврат денег и доставка уведомлений в него не входят. Все PHP-блоки ниже — отдельные фрагменты файлов. Несколько классов собраны в блоке для чтения; в приложении разнесите их по PSR-4-файлам.
+Пример показывает один сценарий изменения существующей брони. Возврат денег и доставка уведомлений в него не входят. Все PHP-блоки ниже — отдельные фрагменты файлов. Несколько классов собраны в блоке для чтения; в приложении разнесите их по файлам согласно [раскладке модуля](structure.md#раскладка-сквозного-примера).
 
 Фрагменты используют возможности PHP 8.3+, включая `DateMalformedStringException`. Совместимость всего приложения определяется его зависимостями. Поведение разбора даты описано в [PHP: DateTimeImmutable](https://www.php.net/manual/en/datetimeimmutable.construct.php).
 
@@ -15,7 +15,7 @@
 
 declare(strict_types=1);
 
-namespace DddGuide\Booking\Domain;
+namespace App\Modules\Booking\Domain\Aggregates\Booking;
 
 use DateTimeImmutable;
 use DomainException;
@@ -120,21 +120,20 @@ final class Booking
 
 Здесь выбран прикладной порт `BookingStore`. Он возвращает модель вместе с технической версией в `LoadedBooking`. Версия не добавляется в предметную модель. Вариант с доменным репозиторием также возможен, если его контракт соответствует потребностям проекта.
 
+Контракты хранения, результат загрузки и ошибки этого порта находятся в `Application/Ports/Persistence`:
+
 ```php
 <?php
 
 declare(strict_types=1);
 
-namespace DddGuide\Booking\Application;
+namespace App\Modules\Booking\Application\Ports\Persistence;
 
 use Closure;
-use DateTimeImmutable;
-use DddGuide\Booking\Domain\Booking;
-use DddGuide\Booking\Domain\BookingId;
+use App\Modules\Booking\Domain\Aggregates\Booking\Booking;
+use App\Modules\Booking\Domain\Aggregates\Booking\BookingId;
 use RuntimeException;
 
-final class BookingNotFound extends RuntimeException {}
-final class BookingAccessDenied extends RuntimeException {}
 final class BookingConflict extends RuntimeException {}
 final class BookingStorageUnavailable extends RuntimeException {}
 final class BookingDataInvalid extends RuntimeException {}
@@ -159,15 +158,46 @@ interface BookingStore
     public function saveCancellation(Booking $booking, int $expectedVersion): void;
 }
 
-interface Clock
-{
-    public function now(): DateTimeImmutable;
-}
-
 interface Transaction
 {
     public function run(Closure $operation): mixed;
 }
+```
+
+Источник времени имеет отдельный контракт в `Application/Ports/Time`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Booking\Application\Ports\Time;
+
+use DateTimeImmutable;
+
+interface Clock
+{
+    public function now(): DateTimeImmutable;
+}
+```
+
+Сценарий, его результат и отказы доступа или обязательной загрузки находятся в `Application/UseCases/CancelBooking`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace App\Modules\Booking\Application\UseCases\CancelBooking;
+
+use App\Modules\Booking\Application\Ports\Persistence\BookingStore;
+use App\Modules\Booking\Application\Ports\Persistence\Transaction;
+use App\Modules\Booking\Application\Ports\Time\Clock;
+use App\Modules\Booking\Domain\Aggregates\Booking\BookingId;
+use RuntimeException;
+
+final class BookingNotFound extends RuntimeException {}
+final class BookingAccessDenied extends RuntimeException {}
 
 final readonly class CancelBookingResult
 {
@@ -231,18 +261,18 @@ final readonly class CancelBooking
 
 declare(strict_types=1);
 
-namespace DddGuide\Booking\Infrastructure;
+namespace App\Modules\Booking\Infrastructure\Persistence\Database;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use DddGuide\Booking\Application\BookingConflict;
-use DddGuide\Booking\Application\BookingDataInvalid;
-use DddGuide\Booking\Application\BookingStorageUnavailable;
-use DddGuide\Booking\Application\BookingStore;
-use DddGuide\Booking\Application\LoadedBooking;
-use DddGuide\Booking\Domain\Booking;
-use DddGuide\Booking\Domain\BookingId;
-use DddGuide\Booking\Domain\BookingState;
+use App\Modules\Booking\Application\Ports\Persistence\BookingConflict;
+use App\Modules\Booking\Application\Ports\Persistence\BookingDataInvalid;
+use App\Modules\Booking\Application\Ports\Persistence\BookingStorageUnavailable;
+use App\Modules\Booking\Application\Ports\Persistence\BookingStore;
+use App\Modules\Booking\Application\Ports\Persistence\LoadedBooking;
+use App\Modules\Booking\Domain\Aggregates\Booking\Booking;
+use App\Modules\Booking\Domain\Aggregates\Booking\BookingId;
+use App\Modules\Booking\Domain\Aggregates\Booking\BookingState;
 use Illuminate\Database\Connection;
 use Illuminate\Database\QueryException;
 
@@ -317,11 +347,11 @@ final readonly class DatabaseBookingStore implements BookingStore
 
 declare(strict_types=1);
 
-namespace DddGuide\Booking\Infrastructure;
+namespace App\Modules\Booking\Infrastructure\Time;
 
 use DateTimeImmutable;
 use DateTimeZone;
-use DddGuide\Booking\Application\Clock;
+use App\Modules\Booking\Application\Ports\Time\Clock;
 
 final class SystemClock implements Clock
 {
@@ -339,14 +369,14 @@ final class SystemClock implements Clock
 
 declare(strict_types=1);
 
-namespace DddGuide\Booking\Providers;
+namespace App\Modules\Booking\Providers;
 
-use DddGuide\Booking\Application\BookingStore;
-use DddGuide\Booking\Application\Clock;
-use DddGuide\Booking\Application\Transaction;
-use DddGuide\Booking\Infrastructure\DatabaseBookingStore;
-use DddGuide\Booking\Infrastructure\LaravelTransaction;
-use DddGuide\Booking\Infrastructure\SystemClock;
+use App\Modules\Booking\Application\Ports\Persistence\BookingStore;
+use App\Modules\Booking\Application\Ports\Persistence\Transaction;
+use App\Modules\Booking\Application\Ports\Time\Clock;
+use App\Modules\Booking\Infrastructure\Persistence\Database\DatabaseBookingStore;
+use App\Modules\Booking\Infrastructure\Persistence\Database\LaravelTransaction;
+use App\Modules\Booking\Infrastructure\Time\SystemClock;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 
@@ -378,9 +408,9 @@ final class BookingServiceProvider extends ServiceProvider
 
 declare(strict_types=1);
 
-namespace DddGuide\Booking\Presentation;
+namespace App\Modules\Booking\Presentation\Http\Controllers;
 
-use DddGuide\Booking\Application\CancelBooking;
+use App\Modules\Booking\Application\UseCases\CancelBooking\CancelBooking;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 

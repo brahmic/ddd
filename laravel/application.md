@@ -39,10 +39,10 @@
 
 declare(strict_types=1);
 
-namespace DddGuide\Booking\Infrastructure;
+namespace App\Modules\Booking\Infrastructure\Persistence\Database;
 
 use Closure;
-use DddGuide\Booking\Application\Transaction;
+use App\Modules\Booking\Application\Ports\Persistence\Transaction;
 use Illuminate\Database\Connection;
 
 final readonly class LaravelTransaction implements Transaction
