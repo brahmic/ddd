@@ -4,9 +4,13 @@
 
 Автор схемы — Herberto Graça. В [исходной статье](https://herbertograca.com/2017/11/16/explicit-architecture-01-ddd-hexagonal-onion-clean-cqrs-how-i-put-it-all-together/) он объединяет идеи DDD, портов и адаптеров, Onion, Clean Architecture и CQRS. [Оригинал в Google Drawings](https://docs.google.com/drawings/d/18zMDp_JOVZZ6qcGndsz1z_xAk85eGPt3sZR3X5VRE0E/edit) можно открыть отдельно и увеличить.
 
-![Explicit Architecture — схема Herberto Graça: ядро приложения, входящие и исходящие адаптеры](https://docs.google.com/drawings/d/18zMDp_JOVZZ6qcGndsz1z_xAk85eGPt3sZR3X5VRE0E/export/png)
+<p align="center">
+  <a href="assets/hex-arch.jpg">
+    <img src="assets/hex-arch.jpg" alt="Explicit Architecture — схема Herberto Graça: ядро приложения, входящие и исходящие адаптеры" width="1000">
+  </a>
+</p>
 
-Изображение загружается из публичного оригинала. Ниже различаются обозначения схемы, варианты из авторской статьи и наш учебный пример. Транзакции, проверка версии, обработка повторов и Outbox в примере — практические дополнения: сама схема не задаёт эти решения.
+Нажмите на изображение, чтобы открыть его в полном размере. Ниже различаются обозначения схемы, варианты из авторской статьи и наш учебный пример. Транзакции, проверка версии, обработка повторов и Outbox в примере — практические дополнения: сама схема не задаёт эти решения.
 
 ## Как читать области схемы
 
