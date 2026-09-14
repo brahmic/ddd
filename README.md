@@ -2,7 +2,7 @@
 
 [![Проверка документации](https://github.com/brahmic/ddd/actions/workflows/docs.yml/badge.svg?branch=master&event=push)](https://github.com/brahmic/ddd/actions/workflows/docs.yml?query=branch%3Amaster)
 
-Материалы этого репозитория собраны по мотивам работ [Дмитрия Афанасьева](https://www.youtube.com/c/DmitryAfanasyev) ([Rutube](https://rutube.ru/channel/24895486/), [VK Видео](https://vkvideo.ru/@simple_training), [ВКонтакте](https://vk.com/simple_training); [канал в ТГ](https://t.me/afanasyev_it)).
+Материалы этого репозитория собраны по мотивам работ Дмитрия Афанасьева ([YouTube](https://www.youtube.com/c/DmitryAfanasyev), [Rutube](https://rutube.ru/channel/24895486/), [VK Видео](https://vkvideo.ru/@simple_training), [ВКонтакте](https://vk.com/simple_training); [канал в ТГ](https://t.me/afanasyev_it)).
 
 > **Важно: назначение документации**
 >
